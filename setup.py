@@ -1,9 +1,10 @@
 #!/usr/bin/env python
 
-import pathlib
 from setuptools import setup
 
-long_description = pathlib.Path("README.md").read_text()
+with open("README.md") as f:
+    long_description = f.read()
+
 setup(
     name="pipelinewise-target-redshift",
     version="1.6.0",
@@ -18,7 +19,7 @@ setup(
     ],
     py_modules=["target_redshift"],
     install_requires=[
-        "pipelinewise-singer-python==2.*",
+        "pipelinewise-singer-python==1.*",
         "boto3==1.28.43",
         "psycopg2-binary==2.9.7",
         "inflection==0.5.1",
