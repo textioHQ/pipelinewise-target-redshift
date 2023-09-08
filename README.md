@@ -40,11 +40,11 @@ or
 
 ### To run
 
-Like any other target that's following the singer specificiation:
+Like any other target that's following the singer specification:
 
 `some-singer-tap | target-redshift --config [config.json]`
 
-It's reading incoming messages from STDIN and using the properites in `config.json` to upload data into Amazon Redshift.
+It's reading incoming messages from STDIN and using the properties in `config.json` to upload data into Amazon Redshift.
 
 **Note**: To avoid version conflicts run `tap` and `targets` in separate virtual environments.
 
@@ -77,8 +77,8 @@ Full list of options in `config.json`:
 | password                            | String  | Yes        | Redshift Password                                             |
 | dbname                              | String  | Yes        | Redshift Database name                                        |
 | aws_profile                         | String  | No         | AWS profile name for profile based authentication. If not provided, `AWS_PROFILE` environment variable will be used. |
-| aws_access_key_id                   | String  | No         | S3 Access Key Id. Used for S3 and Redshfit copy operations. If not provided, `AWS_ACCESS_KEY_ID` environment variable will be used. |
-| aws_secret_access_key               | String  | No         | S3 Secret Access Key. Used for S3 and Redshfit copy operations. If not provided, `AWS_SECRET_ACCESS_KEY` environment variable will be used.  |
+| aws_access_key_id                   | String  | No         | S3 Access Key Id. Used for S3 and Redshift copy operations. If not provided, `AWS_ACCESS_KEY_ID` environment variable will be used. |
+| aws_secret_access_key               | String  | No         | S3 Secret Access Key. Used for S3 and Redshift copy operations. If not provided, `AWS_SECRET_ACCESS_KEY` environment variable will be used.  |
 | aws_session_token                   | String  | No         | S3 AWS STS token for temporary credentials. If not provided, `AWS_SESSION_TOKEN` environment variable will be used. |
 | aws_redshift_copy_role_arn          | String  | No         | AWS Role ARN to be used for the Redshift COPY operation. Used instead of the given AWS keys for the COPY operation if provided - the keys are still used for other S3 operations |
 | s3_acl                              | String  | No         | S3 Object ACL                                                |
@@ -93,7 +93,7 @@ Full list of options in `config.json`:
 | default_target_schema_select_permissions | String  |            | Grant USAGE privilege on newly created schemas and grant SELECT privilege on newly created tables to a specific list of users or groups. Example: `{"users": ["user_1","user_2"], "groups": ["group_1", "group_2"]}` If `schema_mapping` is not defined then every stream sent by the tap is granted accordingly.   |
 | schema_mapping                      | Object  |            | Useful if you want to load multiple streams from one tap to multiple Redshift schemas.<br><br>If the tap sends the `stream_id` in `<schema_name>-<table_name>` format then this option overwrites the `default_target_schema` value. Note, that using `schema_mapping` you can overwrite the `default_target_schema_select_permissions` value to grant SELECT permissions to different groups per schemas or optionally you can create indices automatically for the replicated tables.<br><br> **Note**: This is an experimental feature and recommended to use via PipelineWise YAML files that will generate the object mapping in the right JSON format. For further info check a [PipelineWise YAML Example]
 | disable_table_cache                 | Boolean |            | (Default: False) By default the connector caches the available table structures in Redshift at startup. In this way it doesn't need to run additional queries when ingesting data to check if altering the target tables is required. With `disable_table_cache` option you can turn off this caching. You will always see the most recent table structures but will cause an extra query runtime. |
-| add_metadata_columns                | Boolean |            | (Default: False) Metadata columns add extra row level information about data ingestions, (i.e. when was the row read in source, when was inserted or deleted in redshift etc.) Metadata columns are creating automatically by adding extra columns to the tables with a column prefix `_SDC_`. The metadata columns are documented at https://transferwise.github.io/pipelinewise/data_structure/sdc-columns.html. Enabling metadata columns will flag the deleted rows by setting the `_SDC_DELETED_AT` metadata column. Without the `add_metadata_columns` option the deleted rows from singer taps will not be recongisable in Redshift. |
+| add_metadata_columns                | Boolean |            | (Default: False) Metadata columns add extra row level information about data ingestion, (i.e. when was the row read in source, when was inserted or deleted in redshift etc.) Metadata columns are creating automatically by adding extra columns to the tables with a column prefix `_SDC_`. The metadata columns are documented at [https://transferwise.github.io/pipelinewise/data_structure/sdc-columns.html](https://transferwise.github.io/pipelinewise/data_structure/sdc-columns.html). Enabling metadata columns will flag the deleted rows by setting the `_SDC_DELETED_AT` metadata column. Without the `add_metadata_columns` option the deleted rows from singer taps will not be recognisable in Redshift. |
 | hard_delete                         | Boolean |            | (Default: False) When `hard_delete` option is true then DELETE SQL commands will be performed in Redshift to delete rows in tables. It's achieved by continuously checking the  `_SDC_DELETED_AT` metadata column sent by the singer tap. Due to deleting rows requires metadata columns, `hard_delete` option automatically enables the `add_metadata_columns` option as well. |
 | data_flattening_max_level           | Integer |            | (Default: 0) Object type RECORD items from taps can be loaded into VARIANT columns as JSON (default) or we can flatten the schema by creating columns automatically.<br><br>When value is 0 (default) then flattening functionality is turned off. |
 | primary_key_required                | Boolean |            | (Default: True) Log based and Incremental replications on tables with no Primary Key cause duplicates when merging UPDATE events. When set to true, stop loading data if no Primary Key is defined. |
@@ -103,10 +103,9 @@ Full list of options in `config.json`:
 | slices                              | Integer |    No      | The number of slices to split files into prior to running COPY on Redshift. This should be set to the number of Redshift slices. The number of slices per node depends on the node size of the cluster - run `SELECT COUNT(DISTINCT slice) slices FROM stv_slices` to calculate this. Defaults to `1`. |
 | temp_dir                            | String  |            | (Default: platform-dependent) Directory of temporary CSV files with RECORD messages. |
 
-### To run tests:
+### To run tests
 
 1. Install python dependencies in a virtual env:
-
 
 ```bash
   python3 -m venv venv
@@ -116,7 +115,6 @@ Full list of options in `config.json`:
 ```
 
 1. To run unit tests:
-
 
 ```bash
   coverage run -m pytest -vv --disable-pytest-warnings tests/unit && coverage report
@@ -140,10 +138,9 @@ Full list of options in `config.json`:
   coverage run -m pytest -vv --disable-pytest-warnings tests/integration && coverage report
 ```
 
-### To run pylint:
+### To run pylint
 
 1. Install python dependencies and run python linter
-
 
 ```bash
   python3 -m venv venv
