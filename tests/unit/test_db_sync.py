@@ -80,7 +80,7 @@ class TestTargetRedshift(object):
         assert mapper(json_int_or_str) == "character varying(65535)"
         assert mapper(json_bool) == "boolean"
         assert mapper(json_obj) == "super"
-        assert mapper(json_arr) == "character varying(65535)"
+        assert mapper(json_arr) == "super"
 
     def test_stream_name_to_dict(self):
         """Test identifying catalog, schema and table names from fully qualified stream and table names"""
