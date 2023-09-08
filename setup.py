@@ -20,8 +20,8 @@ setup(
     install_requires=[
         "pipelinewise-singer-python==2.*",
         "boto3==1.28.43",
-        "psycopg2-binary==3.1.10",
-        "inflection==1.5.1",
+        "psycopg2-binary==2.9.7",
+        "inflection==0.5.1",
         "joblib==1.3.2",
     ],
     extras_require={"test": ["pylint==2.17.5", "pytest==7.4.2", "mock==5.1.0", "coverage==7.3.1"]},
