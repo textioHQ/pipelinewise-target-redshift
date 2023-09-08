@@ -18,7 +18,6 @@ coverage_html
 htmlcov/
 pytest-out.xml
 .pytest_cache/
-build/
 
 # Singer JSON files
 properties.json
