@@ -1,10 +1,9 @@
 #!/usr/bin/env python
 
+import pathlib
 from setuptools import setup
 
-with open("README.md") as f:
-    long_description = f.read()
-
+long_description = pathlib.Path("README.md").read_text()
 setup(
     name="pipelinewise-target-redshift",
     version="1.6.0",
