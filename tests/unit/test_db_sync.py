@@ -34,7 +34,7 @@ class TestTargetRedshift(object):
         # Empty configuration should fail - (nr_of_errors > 0)
         assert len(validator(empty_config)) > 0
 
-        # Minimal configuratino should pass - (nr_of_errors == 0)
+        # Minimal configuration should pass - (nr_of_errors == 0)
         assert len(validator(minimal_config)) == 0
 
         # Configuration without schema references - (nr_of_errors >= 0)
@@ -140,7 +140,7 @@ class TestTargetRedshift(object):
                 "c_int": {"type": ["null", "integer"]},
             },
         }
-        # NO FLATTENNING - Schema with simple properties should be a plain dictionary
+        # NO FLATTENING - Schema with simple properties should be a plain dictionary
         assert flatten_schema(not_nested_schema) == not_nested_schema["properties"]
 
         nested_schema_with_no_properties = {
@@ -152,7 +152,7 @@ class TestTargetRedshift(object):
                 "c_obj": {"type": ["null", "object"]},
             },
         }
-        # NO FLATTENNING - Schema with object type property but without further properties should be a plain dictionary
+        # NO FLATTENING - Schema with object type property but without further properties should be a plain dictionary
         assert (
             flatten_schema(nested_schema_with_no_properties)
             == nested_schema_with_no_properties["properties"]
@@ -180,21 +180,21 @@ class TestTargetRedshift(object):
                 },
             },
         }
-        # NO FLATTENNING - Schema with object type property but without further properties should be a plain dictionary
+        # NO FLATTENING - Schema with object type property but without further properties should be a plain dictionary
         # No flattening (default)
         assert (
             flatten_schema(nested_schema_with_properties)
             == nested_schema_with_properties["properties"]
         )
 
-        # NO FLATTENNING - Schema with object type property but without further properties should be a plain dictionary
+        # NO FLATTENING - Schema with object type property but without further properties should be a plain dictionary
         #   max_level: 0 : No flattening (default)
         assert (
             flatten_schema(nested_schema_with_properties, max_level=0)
             == nested_schema_with_properties["properties"]
         )
 
-        # FLATTENNING - Schema with object type property but without further properties should be a dict with flattened properties
+        # FLATTENING - Schema with object type property but without further properties should be a dict with flattened properties
         assert flatten_schema(nested_schema_with_properties, max_level=1) == {
             "c_pk": {"type": ["null", "integer"]},
             "c_varchar": {"type": ["null", "string"]},
@@ -210,7 +210,7 @@ class TestTargetRedshift(object):
             },
         }
 
-        # FLATTENNING - Schema with object type property but without further properties should be a dict with flattened properties
+        # FLATTENING - Schema with object type property but without further properties should be a dict with flattened properties
         assert flatten_schema(nested_schema_with_properties, max_level=10) == {
             "c_pk": {"type": ["null", "integer"]},
             "c_varchar": {"type": ["null", "string"]},
@@ -230,7 +230,7 @@ class TestTargetRedshift(object):
         assert flatten_record(empty_record) == {}
 
         not_nested_record = {"c_pk": 1, "c_varchar": "1", "c_int": 1}
-        # NO FLATTENNING - Record with simple properties should be a plain dictionary
+        # NO FLATTENING - Record with simple properties should be a plain dictionary
         assert flatten_record(not_nested_record) == not_nested_record
 
         nested_record = {
@@ -247,7 +247,7 @@ class TestTargetRedshift(object):
             },
         }
 
-        # NO FLATTENNING - No flattening (default)
+        # NO FLATTENING - No flattening (default)
         assert flatten_record(nested_record) == {
             "c_pk": 1,
             "c_varchar": "1",
@@ -255,7 +255,7 @@ class TestTargetRedshift(object):
             "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
         }
 
-        # NO FLATTENNING
+        # NO FLATTENING
         #   max_level: 0 : No flattening (default)
         assert flatten_record(nested_record, max_level=0) == {
             "c_pk": 1,
@@ -264,7 +264,7 @@ class TestTargetRedshift(object):
             "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
         }
 
-        # SEMI FLATTENNING
+        # SEMI FLATTENING
         #   max_level: 1 : Semi-flattening (default)
         assert flatten_record(nested_record, max_level=1) == {
             "c_pk": 1,
@@ -275,7 +275,7 @@ class TestTargetRedshift(object):
             "c_obj__nested_prop3": '{"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}',
         }
 
-        # FLATTENNING
+        # FLATTENING
         assert flatten_record(nested_record, max_level=10) == {
             "c_pk": 1,
             "c_varchar": "1",
@@ -296,6 +296,6 @@ class TestTargetRedshift(object):
             (False, {"id": 1, "data": "xyz"}, {"id": 1, "data": "xyz"}),
         ]
 
-        for idx, (should_use_flatten_schema, record, expected_output) in enumerate(test_cases):
+        for should_use_flatten_schema, record, expected_output in test_cases:
             output = flatten_record(record, flatten_schema if should_use_flatten_schema else None)
             assert output == expected_output
