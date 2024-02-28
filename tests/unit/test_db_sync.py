@@ -1,7 +1,7 @@
 import target_redshift
 
 
-class TestTargetRedshift(object):
+class TestTargetRedshift:
     """
     Unit Tests for PipelineWise Target Redshift
     """
@@ -99,21 +99,27 @@ class TestTargetRedshift(object):
         }
 
         # Singer stream name format (Default '-' separator)
-        assert target_redshift.db_sync.stream_name_to_dict("my_catalog-my_schema-my_table") == {
+        assert target_redshift.db_sync.stream_name_to_dict(
+            "my_catalog-my_schema-my_table"
+        ) == {
             "catalog_name": "my_catalog",
             "schema_name": "my_schema",
             "table_name": "my_table",
         }
 
         # Redshift table format (Custom '.' separator)
-        assert target_redshift.db_sync.stream_name_to_dict("my_table", separator=".") == {
+        assert target_redshift.db_sync.stream_name_to_dict(
+            "my_table", separator="."
+        ) == {
             "catalog_name": None,
             "schema_name": None,
             "table_name": "my_table",
         }
 
         # Redshift table format (Custom '.' separator)
-        assert target_redshift.db_sync.stream_name_to_dict("my_schema.my_table", separator=".") == {
+        assert target_redshift.db_sync.stream_name_to_dict(
+            "my_schema.my_table", separator="."
+        ) == {
             "catalog_name": None,
             "schema_name": "my_schema",
             "table_name": "my_table",
@@ -122,7 +128,11 @@ class TestTargetRedshift(object):
         # Redshift table format (Custom '.' separator)
         assert target_redshift.db_sync.stream_name_to_dict(
             "my_catalog.my_schema.my_table", separator="."
-        ) == {"catalog_name": "my_catalog", "schema_name": "my_schema", "table_name": "my_table"}
+        ) == {
+            "catalog_name": "my_catalog",
+            "schema_name": "my_schema",
+            "table_name": "my_table",
+        }
 
     def test_flatten_schema(self):
         """Test flattening of SCHEMA messages"""
@@ -248,32 +258,41 @@ class TestTargetRedshift(object):
         }
 
         # NO FLATTENING - No flattening (default)
-        assert flatten_record(nested_record) == {
-            "c_pk": 1,
-            "c_varchar": "1",
-            "c_int": 1,
-            "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
-        }
+        assert (
+            flatten_record(nested_record)
+            == {
+                "c_pk": 1,
+                "c_varchar": "1",
+                "c_int": 1,
+                "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
+            }
+        )
 
         # NO FLATTENING
         #   max_level: 0 : No flattening (default)
-        assert flatten_record(nested_record, max_level=0) == {
-            "c_pk": 1,
-            "c_varchar": "1",
-            "c_int": 1,
-            "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
-        }
+        assert (
+            flatten_record(nested_record, max_level=0)
+            == {
+                "c_pk": 1,
+                "c_varchar": "1",
+                "c_int": 1,
+                "c_obj": '{"nested_prop1": "value_1", "nested_prop2": "value_2", "nested_prop3": {"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}}',
+            }
+        )
 
         # SEMI FLATTENING
         #   max_level: 1 : Semi-flattening (default)
-        assert flatten_record(nested_record, max_level=1) == {
-            "c_pk": 1,
-            "c_varchar": "1",
-            "c_int": 1,
-            "c_obj__nested_prop1": "value_1",
-            "c_obj__nested_prop2": "value_2",
-            "c_obj__nested_prop3": '{"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}',
-        }
+        assert (
+            flatten_record(nested_record, max_level=1)
+            == {
+                "c_pk": 1,
+                "c_varchar": "1",
+                "c_int": 1,
+                "c_obj__nested_prop1": "value_1",
+                "c_obj__nested_prop2": "value_2",
+                "c_obj__nested_prop3": '{"multi_nested_prop1": "multi_value_1", "multi_nested_prop2": "multi_value_2"}',
+            }
+        )
 
         # FLATTENING
         assert flatten_record(nested_record, max_level=10) == {
@@ -297,5 +316,7 @@ class TestTargetRedshift(object):
         ]
 
         for should_use_flatten_schema, record, expected_output in test_cases:
-            output = flatten_record(record, flatten_schema if should_use_flatten_schema else None)
+            output = flatten_record(
+                record, flatten_schema if should_use_flatten_schema else None
+            )
             assert output == expected_output

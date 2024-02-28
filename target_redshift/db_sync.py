@@ -7,12 +7,10 @@ import sys
 import time
 
 import boto3
+import inflection
 import psycopg2
 import psycopg2.extras
-
-import inflection
 from singer import get_logger
-
 
 DEFAULT_VARCHAR_LENGTH = 10000
 SHORT_VARCHAR_LENGTH = 256
@@ -56,7 +54,7 @@ def column_type(schema_property, with_length=True):
     if schema_property.get("maxLength", 0) > varchar_length:
         varchar_length = LONG_VARCHAR_LENGTH
     if "object" in property_type or "array" in property_type:
-        column_type = 'super'
+        column_type = "super"
         varchar_length = LONG_VARCHAR_LENGTH
 
     # Every date-time JSON value is currently mapped to TIMESTAMP WITHOUT TIME ZONE
@@ -87,11 +85,7 @@ def column_type(schema_property, with_length=True):
 
 def column_trans(schema_property):
     property_type = schema_property["type"]
-    return (
-        "parse_json"
-        if "object" in property_type or "array" in property_type
-        else ""
-    )
+    return "parse_json" if "object" in property_type or "array" in property_type else ""
 
 
 def safe_column_name(name):
@@ -107,11 +101,11 @@ def flatten_key(k, parent_key, sep):
     inflected_key = full_key.copy()
     reducer_index = 0
     while len(sep.join(inflected_key)) >= 127 and reducer_index < len(inflected_key):
-        reduced_key = re.sub(r"[a-z]", "", inflection.camelize(inflected_key[reducer_index]))
+        reduced_key = re.sub(
+            r"[a-z]", "", inflection.camelize(inflected_key[reducer_index])
+        )
         inflected_key[reducer_index] = (
-            reduced_key
-            if len(reduced_key) > 1
-            else inflected_key[reducer_index][:3]
+            reduced_key if len(reduced_key) > 1 else inflected_key[reducer_index][:3]
         ).lower()
         reducer_index += 1
 
@@ -126,11 +120,15 @@ def flatten_schema(d, parent_key=[], sep="__", level=0, max_level=0):
 
     for k, v in d["properties"].items():
         new_key = flatten_key(k, parent_key, sep)
-        if "type" in v.keys():
+        if "type" in v:
             if "object" in v["type"] and "properties" in v and level < max_level:
                 items.extend(
                     flatten_schema(
-                        v, parent_key + [k], sep=sep, level=level + 1, max_level=max_level
+                        v,
+                        parent_key + [k],
+                        sep=sep,
+                        level=level + 1,
+                        max_level=max_level,
                     ).items()
                 )
             else:
@@ -163,17 +161,17 @@ def _should_json_dump_value(key, value, flatten_schema=None):
         return True
 
     return bool(
-        (
-            flatten_schema
-            and key in flatten_schema
-            and "type" in flatten_schema[key]
-            and set(flatten_schema[key]["type"]) == {"null", "object", "array"}
-        )
+        flatten_schema
+        and key in flatten_schema
+        and "type" in flatten_schema[key]
+        and set(flatten_schema[key]["type"]) == {"null", "object", "array"}
     )
 
 
 # pylint: disable-msg=too-many-arguments
-def flatten_record(d, flatten_schema=None, parent_key=None, sep="__", level=0, max_level=0):
+def flatten_record(
+    d, flatten_schema=None, parent_key=None, sep="__", level=0, max_level=0
+):
     if parent_key is None:
         parent_key = []
     items = []
@@ -192,7 +190,12 @@ def flatten_record(d, flatten_schema=None, parent_key=None, sep="__", level=0, m
             )
         else:
             items.append(
-                (new_key, json.dumps(v) if _should_json_dump_value(k, v, flatten_schema) else v)
+                (
+                    new_key,
+                    json.dumps(v)
+                    if _should_json_dump_value(k, v, flatten_schema)
+                    else v,
+                )
             )
     return dict(items)
 
@@ -217,7 +220,11 @@ def stream_name_to_dict(stream_name, separator="-"):
         schema_name = s[1]
         table_name = "_".join(s[2:])
 
-    return {"catalog_name": catalog_name, "schema_name": schema_name, "table_name": table_name}
+    return {
+        "catalog_name": catalog_name,
+        "schema_name": schema_name,
+        "table_name": table_name,
+    }
 
 
 # pylint: disable=too-many-public-methods,too-many-instance-attributes
@@ -258,16 +265,18 @@ class DbSync:
             )
             sys.exit(1)
 
-        aws_profile = self.connection_config.get("aws_profile") or os.environ.get("AWS_PROFILE")
-        aws_access_key_id = self.connection_config.get("aws_access_key_id") or os.environ.get(
-            "AWS_ACCESS_KEY_ID"
+        aws_profile = self.connection_config.get("aws_profile") or os.environ.get(
+            "AWS_PROFILE"
         )
+        aws_access_key_id = self.connection_config.get(
+            "aws_access_key_id"
+        ) or os.environ.get("AWS_ACCESS_KEY_ID")
         aws_secret_access_key = self.connection_config.get(
             "aws_secret_access_key"
         ) or os.environ.get("AWS_SECRET_ACCESS_KEY")
-        aws_session_token = self.connection_config.get("aws_session_token") or os.environ.get(
-            "AWS_SESSION_TOKEN"
-        )
+        aws_session_token = self.connection_config.get(
+            "aws_session_token"
+        ) or os.environ.get("AWS_SESSION_TOKEN")
 
         # Init S3 client
         # Conditionally pass keys as this seems to affect whether instance credentials are correctly loaded if the keys are None
@@ -320,7 +329,9 @@ class DbSync:
             stream_name = stream_schema_message["stream"]
             stream_schema_name = stream_name_to_dict(stream_name)["schema_name"]
             if config_schema_mapping and stream_schema_name in config_schema_mapping:
-                self.schema_name = config_schema_mapping[stream_schema_name].get("target_schema")
+                self.schema_name = config_schema_mapping[stream_schema_name].get(
+                    "target_schema"
+                )
             elif config_default_target_schema:
                 self.schema_name = config_default_target_schema
 
@@ -348,7 +359,9 @@ class DbSync:
             #                                                                   }
             #                                                               }
             #                                                           }
-            self.grantees = self.connection_config.get("default_target_schema_select_permissions")
+            self.grantees = self.connection_config.get(
+                "default_target_schema_select_permissions"
+            )
             if config_schema_mapping and stream_schema_name in config_schema_mapping:
                 self.grantees = config_schema_mapping[stream_schema_name].get(
                     "target_schema_select_permissions", self.grantees
@@ -358,13 +371,18 @@ class DbSync:
                 "data_flattening_max_level", 0
             )
             self.flatten_schema = flatten_schema(
-                stream_schema_message["schema"], max_level=self.data_flattening_max_level
+                stream_schema_message["schema"],
+                max_level=self.data_flattening_max_level,
             )
 
     def open_connection(self):
-        conn_string = f"""host='{self.connection_config["host"]}' dbname='{self.connection_config["dbname"]}' user='{self.connection_config["user"]}' password='{self.connection_config["password"]}' port='{self.connection_config["port"]}'"""
-
-        return psycopg2.connect(conn_string)
+        return psycopg2.connect(
+            database=self.connection_config["dbname"],
+            user=self.connection_config["user"],
+            password=self.connection_config["password"],
+            host=self.connection_config["host"],
+            port=self.connection_config["port"],
+        )
 
     def query(self, query, params=None):
         self.logger.debug(f"Running query: {query}")
@@ -394,12 +412,14 @@ class DbSync:
             record, self.flatten_schema, max_level=self.data_flattening_max_level
         )
         try:
-            key_props = [str(flatten[p]) for p in self.stream_schema_message["key_properties"]]
-        except Exception as exc:
+            key_props = [
+                str(flatten[p]) for p in self.stream_schema_message["key_properties"]
+            ]
+        except Exception:
             self.logger.info(
                 f'Cannot find {self.stream_schema_message["key_properties"]} primary key(s) in record: {flatten}'
             )
-            raise exc
+            raise
         return ",".join(key_props)
 
     def record_to_csv_line(self, record):
@@ -446,7 +466,7 @@ class DbSync:
         target_table = self.table_name(stream, is_stage=False)
 
         self.logger.info(
-            "Loading {} rows into '{}'".format(count, self.table_name(stream, is_stage=True))
+            f"Loading {count} rows into '{self.table_name(stream, is_stage=True)}'"
         )
 
         # Get list if columns with types
@@ -565,9 +585,7 @@ class DbSync:
                         " AND ".join(
                             [
                                 f"{target_table}.{c} IS NULL"
-                                for c in primary_column_names(
-                                    stream_schema_message
-                                )
+                                for c in primary_column_names(stream_schema_message)
                             ]
                         ),
                     )
@@ -589,7 +607,11 @@ class DbSync:
                     "Loading into {}: {}".format(
                         self.table_name(stream, False),
                         json.dumps(
-                            {"inserts": inserts, "updates": updates, "size_bytes": size_bytes}
+                            {
+                                "inserts": inserts,
+                                "updates": updates,
+                                "size_bytes": size_bytes,
+                            }
                         ),
                     )
                 )
@@ -615,12 +637,13 @@ class DbSync:
 
     def create_table_query(self, is_stage=False):
         stream_schema_message = self.stream_schema_message
-        columns = [column_clause(name, schema) for (name, schema) in self.flatten_schema.items()]
+        columns = [
+            column_clause(name, schema)
+            for (name, schema) in self.flatten_schema.items()
+        ]
 
         primary_key = (
-            [
-                f'PRIMARY KEY ({", ".join(primary_column_names(stream_schema_message))})'
-            ]
+            [f'PRIMARY KEY ({", ".join(primary_column_names(stream_schema_message))})']
             if len(stream_schema_message["key_properties"])
             else []
         )
@@ -638,7 +661,9 @@ class DbSync:
         )
         self.query(query)
 
-    def grant_select_on_all_tables_in_schema(self, schema_name, grantee, to_group=False):
+    def grant_select_on_all_tables_in_schema(
+        self, schema_name, grantee, to_group=False
+    ):
         query = f'GRANT SELECT ON ALL TABLES IN SCHEMA {schema_name} TO {"GROUP" if to_group else ""} {grantee}'
         self.logger.info(
             f"Granting SELECT ON ALL TABLES privilege on '{schema_name}' schema to '{grantee}'... {query}"
@@ -672,7 +697,9 @@ class DbSync:
         # table_columns_cache is an optional pre-collected list of available objects in redshift
         if self.table_cache:
             schema_rows = list(
-                filter(lambda x: x["table_schema"] == schema_name.lower(), self.table_cache)
+                filter(
+                    lambda x: x["table_schema"] == schema_name.lower(), self.table_cache
+                )
             )
         # Query realtime if not pre-collected
         else:
@@ -683,29 +710,33 @@ class DbSync:
 
         if len(schema_rows) == 0:
             query = f"CREATE SCHEMA IF NOT EXISTS {schema_name}"
-            self.logger.info(f"Schema '{schema_name}' does not exist. Creating... {query}")
+            self.logger.info(
+                f"Schema '{schema_name}' does not exist. Creating... {query}"
+            )
             self.query(query)
 
             self.grant_privilege(schema_name, self.grantees, self.grant_usage_on_schema)
 
             # Refresh columns cache if required
             if self.table_cache:
-                self.table_cache = self.get_table_columns(filter_schemas=[self.schema_name])
+                self.table_cache = self.get_table_columns(
+                    filter_schemas=[self.schema_name]
+                )
 
     def get_tables(self, table_schema=None):
         return self.query(
-            (
-                """SELECT LOWER(table_schema) table_schema, LOWER(table_name) table_name
+            """SELECT LOWER(table_schema) table_schema, LOWER(table_name) table_name
             FROM information_schema.tables
             WHERE LOWER(table_schema) = {}""".format(
-                    "LOWER(table_schema)"
-                    if table_schema is None
-                    else f"'{table_schema.lower()}'"
-                )
+                "LOWER(table_schema)"
+                if table_schema is None
+                else f"'{table_schema.lower()}'"
             )
         )
 
-    def get_table_columns(self, table_schema=None, table_name=None, filter_schemas=None):
+    def get_table_columns(
+        self, table_schema=None, table_name=None, filter_schemas=None
+    ):
         sql = """SELECT LOWER(c.table_schema) table_schema, LOWER(c.table_name) table_name, c.column_name, c.data_type
             FROM information_schema.columns c
             WHERE 1=1"""
@@ -758,7 +789,6 @@ class DbSync:
             if name.lower() in columns_dict
             and columns_dict[name.lower()]["data_type"].lower()
             != column_type(properties_schema, with_length=False).lower()
-            and
             # Don't alter table if 'timestamp without time zone' detected as the new required column type
             #
             # Target-redshift maps every data-time JSON types to 'timestamp without time zone' but sometimes
@@ -770,7 +800,7 @@ class DbSync:
             # TODO: Support both timestamp with/without time zone in target-redshift
             # when extracting data-time values from JSON
             # (Check the column_type function for further details)
-            column_type(properties_schema).lower() != "timestamp without time zone"
+            and column_type(properties_schema).lower() != "timestamp without time zone"
         ]
 
         for column_name, column in columns_to_replace:
@@ -823,7 +853,9 @@ class DbSync:
         stream_schema_message = self.stream_schema_message
         stream = stream_schema_message["stream"]
         table_name = self.table_name(stream, is_stage=False, without_schema=True)
-        table_name_with_schema = self.table_name(stream, is_stage=False, without_schema=False)
+        table_name_with_schema = self.table_name(
+            stream, is_stage=False, without_schema=False
+        )
 
         if self.table_cache:
             found_tables = list(

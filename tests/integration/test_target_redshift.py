@@ -1,15 +1,15 @@
 import contextlib
-import pytest
-import os
-import json
-import mock
 import datetime
+import json
+import os
+from unittest import mock
+
+import pytest
+from psycopg2 import InternalError
 
 import target_redshift
 from target_redshift import RecordValidationException
 from target_redshift.db_sync import DbSync
-
-from psycopg2 import InternalError
 
 try:
     import tests.utils as test_utils
@@ -20,7 +20,7 @@ except ImportError:
 METADATA_COLUMNS = ["_sdc_extracted_at", "_sdc_batched_at", "_sdc_deleted_at"]
 
 
-class TestTargetRedshift(object):
+class TestTargetRedshift:
     """
     Integration Tests for PipelineWise Target Redshift
     """
@@ -160,7 +160,9 @@ class TestTargetRedshift(object):
                 {"c_int": 3, "c_pk": 3, "c_varchar": "3", "c_time": "23:00:03"},
             ]
 
-        assert self.remove_metadata_columns_from_rows(table_three) == expected_table_three
+        assert (
+            self.remove_metadata_columns_from_rows(table_three) == expected_table_three
+        )
 
         # ----------------------------------------------------------------------
         # Check if metadata columns exist or not
@@ -174,7 +176,9 @@ class TestTargetRedshift(object):
             self.assert_metadata_columns_not_exist(table_two)
             self.assert_metadata_columns_not_exist(table_three)
 
-    def assert_logical_streams_are_in_redshift(self, should_metadata_columns_exist=False):
+    def assert_logical_streams_are_in_redshift(
+        self, should_metadata_columns_exist=False
+    ):
         # Get loaded rows from tables
         redshift = DbSync(self.config)
         target_schema = self.config.get("default_target_schema", "")
@@ -251,7 +255,9 @@ class TestTargetRedshift(object):
         # Check if data replicated correctly
         assert self.remove_metadata_columns_from_rows(table_one) == expected_table_one
         assert self.remove_metadata_columns_from_rows(table_two) == expected_table_two
-        assert self.remove_metadata_columns_from_rows(table_three) == expected_table_three
+        assert (
+            self.remove_metadata_columns_from_rows(table_three) == expected_table_three
+        )
         assert self.remove_metadata_columns_from_rows(table_four) == expected_table_four
 
     def assert_logical_streams_are_in_redshift_and_are_empty(self):
@@ -276,7 +282,9 @@ class TestTargetRedshift(object):
         assert table_three == []
         assert table_four == []
 
-    def assert_binary_data_are_in_snowflake(self, table_name, should_metadata_columns_exist=False):
+    def assert_binary_data_are_in_snowflake(
+        self, table_name, should_metadata_columns_exist=False
+    ):
         # Redshift doesn't have binary type. Binary formatted singer values loaded into VARCHAR columns
         # Get loaded rows from tables
         snowflake = DbSync(self.config)
@@ -302,7 +310,9 @@ class TestTargetRedshift(object):
         ]
 
         if should_metadata_columns_exist:
-            assert self.remove_metadata_columns_from_rows(table_one) == expected_table_one
+            assert (
+                self.remove_metadata_columns_from_rows(table_one) == expected_table_one
+            )
         else:
             assert table_one == expected_table_one
 
@@ -324,7 +334,7 @@ class TestTargetRedshift(object):
 
     def test_loading_tables(self):
         """Loading multiple tables from the same input tap with various columns types"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json",
                 "",
@@ -335,17 +345,19 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_metadata_columns(self):
         """Loading multiple tables from the same input tap with various columns types"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", True, "add_metadata_columns"
             )
         )
         # Check if data loaded correctly and metadata columns exist
-        self.assert_three_streams_are_loaded_in_redshift(should_metadata_columns_exist=True)
+        self.assert_three_streams_are_loaded_in_redshift(
+            should_metadata_columns_exist=True
+        )
 
     def test_loading_tables_with_defined_parallelism(self):
         """Loading multiple tables from the same input tap with various columns types"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", 1, "parallelism"
             )
@@ -354,7 +366,7 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_defined_slice_number(self):
         """Loading multiple tables from the same input tap with various columns types with a defined slice number"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", 4, "slices"
             )
@@ -363,7 +375,7 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_gzip_compression(self):
         """Loading multiple tables from the same input tap with various columns types and gzip compression"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", "gzip", "compression"
             )
@@ -372,7 +384,7 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_bz2_compression(self):
         """Loading multiple tables from the same input tap with various columns types and bz2 compression"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", "bz2", "compression"
             )
@@ -381,7 +393,7 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_hard_delete(self):
         """Loading multiple tables from the same input tap with deleted rows"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json", True, "hard_delete"
             )
@@ -405,7 +417,7 @@ class TestTargetRedshift(object):
 
     def test_loading_table_with_reserved_word_as_name_and_hard_delete(self):
         """Loading a table where the name is a reserved word with deleted rows"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-reserved-name-as-table-name.json",
                 True,
@@ -419,14 +431,15 @@ class TestTargetRedshift(object):
 
     def test_loading_table_with_space(self):
         """Loading a table where the name has space"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-space-in-table-name.json", True, "hard_delete"
             )
         )
         # Check if data loaded correctly and metadata columns exist
         self.assert_binary_data_are_in_snowflake(
-            table_name='"table with space and uppercase"', should_metadata_columns_exist=True
+            table_name='"table with space and uppercase"',
+            should_metadata_columns_exist=True,
         )
 
     def test_loading_unicode_characters(self):
@@ -435,22 +448,37 @@ class TestTargetRedshift(object):
             "messages-with-unicode-characters.json",
             "SELECT * FROM {}.test_table_unicode ORDER BY c_pk",
         )
-        assert self.remove_metadata_columns_from_rows(table_unicode) == [
-            {"c_int": 1, "c_pk": 1, "c_varchar": "Hello world, Καλημέρα κόσμε, コンニチハ"},
-            {"c_int": 2, "c_pk": 2, "c_varchar": "Chinese: 和毛泽东 <<重上井冈山>>. 严永欣, 一九八八年."},
-            {
-                "c_int": 3,
-                "c_pk": 3,
-                "c_varchar": "Russian: Зарегистрируйтесь сейчас на Десятую Международную Конференцию по",
-            },
-            {"c_int": 4, "c_pk": 4, "c_varchar": "Thai: แผ่นดินฮั่นเสื่อมโทรมแสนสังเวช"},
-            {
-                "c_int": 5,
-                "c_pk": 5,
-                "c_varchar": "Arabic: لقد لعبت أنت وأصدقاؤك لمدة وحصلتم علي من إجمالي النقاط",
-            },
-            {"c_int": 6, "c_pk": 6, "c_varchar": "Special Characters: [\"\\,'!@£$%^&*()]\\\\"},
-        ]
+        assert (
+            self.remove_metadata_columns_from_rows(table_unicode)
+            == [
+                {
+                    "c_int": 1,
+                    "c_pk": 1,
+                    "c_varchar": "Hello world, Καλημέρα κόσμε, コンニチハ",
+                },
+                {
+                    "c_int": 2,
+                    "c_pk": 2,
+                    "c_varchar": "Chinese: 和毛泽东 <<重上井冈山>>. 严永欣, 一九八八年.",
+                },
+                {
+                    "c_int": 3,
+                    "c_pk": 3,
+                    "c_varchar": "Russian: Зарегистрируйтесь сейчас на Десятую Международную Конференцию по",
+                },
+                {"c_int": 4, "c_pk": 4, "c_varchar": "Thai: แผ่นดินฮั่นเสื่อมโทรมแสนสังเวช"},
+                {
+                    "c_int": 5,
+                    "c_pk": 5,
+                    "c_varchar": "Arabic: لقد لعبت أنت وأصدقاؤك لمدة وحصلتم علي من إجمالي النقاط",
+                },
+                {
+                    "c_int": 6,
+                    "c_pk": 6,
+                    "c_varchar": "Special Characters: [\"\\,'!@£$%^&*()]\\\\",
+                },
+            ]
+        )
 
     def test_loading_long_text(self):
         """Loading long texts"""
@@ -459,23 +487,26 @@ class TestTargetRedshift(object):
             "SELECT * FROM {}.test_table_long_texts ORDER BY c_pk",
         )
         # Test not very long texts by exact match
-        assert self.remove_metadata_columns_from_rows(table_long_texts)[:3] == [
-            {
-                "c_int": 1,
-                "c_pk": 1,
-                "c_varchar": "Up to 128 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
-            },
-            {
-                "c_int": 2,
-                "c_pk": 2,
-                "c_varchar": "Up to 256 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies.",
-            },
-            {
-                "c_int": 3,
-                "c_pk": 3,
-                "c_varchar": "Up to 1024 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum.",
-            },
-        ]
+        assert (
+            self.remove_metadata_columns_from_rows(table_long_texts)[:3]
+            == [
+                {
+                    "c_int": 1,
+                    "c_pk": 1,
+                    "c_varchar": "Up to 128 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit.",
+                },
+                {
+                    "c_int": 2,
+                    "c_pk": 2,
+                    "c_varchar": "Up to 256 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies.",
+                },
+                {
+                    "c_int": 3,
+                    "c_pk": 3,
+                    "c_varchar": "Up to 1024 characters: Lorem ipsum dolor sit amet, consectetuer adipiscing elit. Aenean commodo ligula eget dolor. Aenean massa. Cum sociis natoque penatibus et magnis dis parturient montes, nascetur ridiculus mus. Donec quam felis, ultricies nec, pellentesque eu, pretium quis, sem. Nulla consequat massa quis enim. Donec pede justo, fringilla vel, aliquet nec, vulputate eget, arcu. In enim justo, rhoncus ut, imperdiet a, venenatis vitae, justo. Nullam dictum felis eu pede mollis pretium. Integer tincidunt. Cras dapibus. Vivamus elementum semper nisi. Aenean vulputate eleifend tellus. Aenean leo ligula, porttitor eu, consequat vitae, eleifend ac, enim. Aliquam lorem ante, dapibus in, viverra quis, feugiat a, tellus. Phasellus viverra nulla ut metus varius laoreet. Quisque rutrum. Aenean imperdiet. Etiam ultricies nisi vel augue. Curabitur ullamcorper ultricies nisi. Nam eget dui. Etiam rhoncus. Maecenas tempus, tellus eget condimentum rhoncus, sem quam semper libero, sit amet adipiscing sem neque sed ipsum.",
+                },
+            ]
+        )
 
         # Test very long texts by string length
         record_4k = table_long_texts[3]
@@ -498,16 +529,40 @@ class TestTargetRedshift(object):
 
     def test_non_db_friendly_columns(self):
         """Loading non-db friendly columns like, camelcase, minus signs, etc."""
-        table_non_db_friendly_columns = self._extracted_from_test_nested_schema_unflattening_3(
-            "messages-with-non-db-friendly-columns.json",
-            "SELECT * FROM {}.test_table_non_db_friendly_columns ORDER BY c_pk",
+        table_non_db_friendly_columns = (
+            self._extracted_from_test_nested_schema_unflattening_3(
+                "messages-with-non-db-friendly-columns.json",
+                "SELECT * FROM {}.test_table_non_db_friendly_columns ORDER BY c_pk",
+            )
         )
-        assert self.remove_metadata_columns_from_rows(table_non_db_friendly_columns) == [
-            {"c_pk": 1, "camelcasecolumn": "Dummy row 1", "minus-column": "Dummy row 1"},
-            {"c_pk": 2, "camelcasecolumn": "Dummy row 2", "minus-column": "Dummy row 2"},
-            {"c_pk": 3, "camelcasecolumn": "Dummy row 3", "minus-column": "Dummy row 3"},
-            {"c_pk": 4, "camelcasecolumn": "Dummy row 4", "minus-column": "Dummy row 4"},
-            {"c_pk": 5, "camelcasecolumn": "Dummy row 5", "minus-column": "Dummy row 5"},
+        assert self.remove_metadata_columns_from_rows(
+            table_non_db_friendly_columns
+        ) == [
+            {
+                "c_pk": 1,
+                "camelcasecolumn": "Dummy row 1",
+                "minus-column": "Dummy row 1",
+            },
+            {
+                "c_pk": 2,
+                "camelcasecolumn": "Dummy row 2",
+                "minus-column": "Dummy row 2",
+            },
+            {
+                "c_pk": 3,
+                "camelcasecolumn": "Dummy row 3",
+                "minus-column": "Dummy row 3",
+            },
+            {
+                "c_pk": 4,
+                "camelcasecolumn": "Dummy row 4",
+                "minus-column": "Dummy row 4",
+            },
+            {
+                "c_pk": 5,
+                "camelcasecolumn": "Dummy row 5",
+                "minus-column": "Dummy row 5",
+            },
         ]
 
     def test_nested_schema_unflattening(self):
@@ -524,15 +579,18 @@ class TestTargetRedshift(object):
              ORDER BY c_pk""",
         )
         # Should be valid nested JSON strings
-        assert self.remove_metadata_columns_from_rows(unflattened_table) == [
-            {
-                "c_pk": 1,
-                "c_array": "[1, 2, 3]",
-                "c_object": '{"key_1": "value_1"}',
-                "c_object_with_props": '{"key_1": "value_1"}',
-                "c_nested_object": '{"nested_prop_1": "nested_value_1", "nested_prop_2": "nested_value_2", "nested_prop_3": {"multi_nested_prop_1": "multi_value_1", "multi_nested_prop_2": "multi_value_2"}}',
-            }
-        ]
+        assert (
+            self.remove_metadata_columns_from_rows(unflattened_table)
+            == [
+                {
+                    "c_pk": 1,
+                    "c_array": "[1, 2, 3]",
+                    "c_object": '{"key_1": "value_1"}',
+                    "c_object_with_props": '{"key_1": "value_1"}',
+                    "c_nested_object": '{"nested_prop_1": "nested_value_1", "nested_prop_2": "nested_value_2", "nested_prop_3": {"multi_nested_prop_1": "multi_value_1", "multi_nested_prop_2": "multi_value_2"}}',
+                }
+            ]
+        )
 
     # TODO Rename this here and in `test_loading_unicode_characters`, `test_loading_long_text`, `test_non_db_friendly_columns` and `test_nested_schema_unflattening`
     def _extracted_from_test_nested_schema_unflattening_3(self, arg0, arg1):
@@ -544,7 +602,7 @@ class TestTargetRedshift(object):
 
     def test_nested_schema_flattening(self):
         """Loading nested JSON objects with flattening and not not flattening"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-nested-schema.json", 10, "data_flattening_max_level"
             )
@@ -557,18 +615,21 @@ class TestTargetRedshift(object):
         )
 
         # Should be flattened columns
-        assert self.remove_metadata_columns_from_rows(flattened_table) == [
-            {
-                "c_pk": 1,
-                "c_array": "[1, 2, 3]",
-                "c_object": None,  # Cannot map RECORD to SCHEMA. SCHEMA doesn't have properties that requires for flattening
-                "c_object_with_props__key_1": "value_1",
-                "c_nested_object__nested_prop_1": "nested_value_1",
-                "c_nested_object__nested_prop_2": "nested_value_2",
-                "c_nested_object__nested_prop_3__multi_nested_prop_1": "multi_value_1",
-                "c_nested_object__nested_prop_3__multi_nested_prop_2": "multi_value_2",
-            }
-        ]
+        assert (
+            self.remove_metadata_columns_from_rows(flattened_table)
+            == [
+                {
+                    "c_pk": 1,
+                    "c_array": "[1, 2, 3]",
+                    "c_object": None,  # Cannot map RECORD to SCHEMA. SCHEMA doesn't have properties that requires for flattening
+                    "c_object_with_props__key_1": "value_1",
+                    "c_nested_object__nested_prop_1": "nested_value_1",
+                    "c_nested_object__nested_prop_2": "nested_value_2",
+                    "c_nested_object__nested_prop_3__multi_nested_prop_1": "multi_value_1",
+                    "c_nested_object__nested_prop_3__multi_nested_prop_2": "multi_value_2",
+                }
+            ]
+        )
 
     def test_column_name_change(self):
         """Tests correct renaming of redshift columns after source change"""
@@ -606,9 +667,7 @@ class TestTargetRedshift(object):
                AND table_name = 'test_table_two'
              ORDER BY ordinal_position
              LIMIT 1
-            """.format(
-                self.config.get("dbname", "").lower(), target_schema.lower()
-            )
+            """.format(self.config.get("dbname", "").lower(), target_schema.lower())
         )[0]["column_name"]
 
         # Table one should have no changes
@@ -708,14 +767,18 @@ class TestTargetRedshift(object):
         redshift.query(
             f'DROP SCHEMA IF EXISTS {self.config["default_target_schema"]} CASCADE'
         )
-        self.config["default_target_schema_select_permissions"] = {"users": ["user_1", "user_2"]}
+        self.config["default_target_schema_select_permissions"] = {
+            "users": ["user_1", "user_2"]
+        }
         target_redshift.persist_lines(self.config, tap_lines)
 
         # Grant privileges to list of groups
         redshift.query(
             f'DROP SCHEMA IF EXISTS {self.config["default_target_schema"]} CASCADE'
         )
-        self.config["default_target_schema_select_permissions"] = {"groups": ["group_1", "group_2"]}
+        self.config["default_target_schema_select_permissions"] = {
+            "groups": ["group_1", "group_2"]
+        }
         target_redshift.persist_lines(self.config, tap_lines)
 
         # Grant privileges to mix of list of users and groups
@@ -750,7 +813,7 @@ class TestTargetRedshift(object):
 
     def test_custom_copy_options(self):
         """Test loading data with custom copy options"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json",
                 "EMPTYASNULL TRIMBLANKS FILLRECORD TRUNCATECOLUMNS",
@@ -763,7 +826,9 @@ class TestTargetRedshift(object):
         tap_lines = test_utils.get_test_tap_lines("messages-with-three-streams.json")
 
         try:
-            os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get("TARGET_REDSHIFT_AWS_ACCESS_KEY")
+            os.environ["AWS_ACCESS_KEY_ID"] = os.environ.get(
+                "TARGET_REDSHIFT_AWS_ACCESS_KEY"
+            )
             os.environ["AWS_SECRET_ACCESS_KEY"] = os.environ.get(
                 "TARGET_REDSHIFT_AWS_SECRET_ACCESS_KEY"
             )
@@ -793,16 +858,20 @@ class TestTargetRedshift(object):
         with pytest.raises(Exception):
             target_redshift.persist_lines(self.config, tap_lines)
 
-    def test_logical_streams_from_pg_with_hard_delete_and_default_batch_size_should_pass(self):
+    def test_logical_streams_from_pg_with_hard_delete_and_default_batch_size_should_pass(
+        self
+    ):
         """Tests logical streams from pg with inserts, updates and deletes"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-pg-logical-streams.json", True, "hard_delete"
             )
         )
         self.assert_logical_streams_are_in_redshift(should_metadata_columns_exist=True)
 
-    def test_logical_streams_from_pg_with_hard_delete_and_batch_size_of_5_should_pass(self):
+    def test_logical_streams_from_pg_with_hard_delete_and_batch_size_of_5_should_pass(
+        self
+    ):
         """Tests logical streams from pg with inserts, updates and deletes"""
         tap_lines = test_utils.get_test_tap_lines("messages-pg-logical-streams.json")
 
@@ -817,7 +886,9 @@ class TestTargetRedshift(object):
         self,
     ):
         """Tests logical streams from pg with inserts, updates and deletes"""
-        tap_lines = test_utils.get_test_tap_lines("messages-pg-logical-streams-no-records.json")
+        tap_lines = test_utils.get_test_tap_lines(
+            "messages-pg-logical-streams-no-records.json"
+        )
 
         # Turning on hard delete mode
         self.config["hard_delete"] = True
@@ -1185,7 +1256,9 @@ class TestTargetRedshift(object):
             target_redshift.persist_lines(self.config, tap_lines)
 
     @mock.patch("target_redshift.emit_state")
-    def test_flush_streams_with_intermediate_flushes_on_all_streams(self, mock_emit_state):
+    def test_flush_streams_with_intermediate_flushes_on_all_streams(
+        self, mock_emit_state
+    ):
         """Test emitting states when intermediate flushes required and flush_all_streams is enabled"""
         mock_emit_state.get.return_value = None
         tap_lines = test_utils.get_test_tap_lines("messages-pg-logical-streams.json")
@@ -1469,22 +1542,22 @@ class TestTargetRedshift(object):
 
     def test_loading_tables_with_skip_updates(self):
         """Loading records with existing primary keys but skip updates"""
-        tap_lines = (
-            self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
-                "messages-with-three-streams.json", True, "skip_updates"
-            )
+        tap_lines = self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
+            "messages-with-three-streams.json", True, "skip_updates"
         )
         self.assert_three_streams_are_loaded_in_redshift()
 
         # Load some new records with upserts
-        tap_lines = test_utils.get_test_tap_lines("messages-with-three-streams-upserts.json")
+        tap_lines = test_utils.get_test_tap_lines(
+            "messages-with-three-streams-upserts.json"
+        )
         target_redshift.persist_lines(self.config, tap_lines)
 
         self.assert_three_streams_are_loaded_in_redshift(should_skip_updates=True)
 
     def test_loading_tables_with_custom_temp_dir(self):
         """Loading multiple tables from the same input tap using custom temp directory"""
-        tap_lines = (
+        (
             self._extracted_from_test_loading_tables_with_custom_temp_dir_3(
                 "messages-with-three-streams.json",
                 "~/.pipelinewise/tmp",
@@ -1494,7 +1567,9 @@ class TestTargetRedshift(object):
         self.assert_three_streams_are_loaded_in_redshift()
 
     # TODO Rename this here and in `test_loading_tables`, `test_loading_tables_with_metadata_columns`, `test_loading_tables_with_defined_parallelism`, `test_loading_tables_with_defined_slice_number`, `test_loading_tables_with_gzip_compression`, `test_loading_tables_with_bz2_compression`, `test_loading_tables_with_hard_delete`, `test_loading_table_with_reserved_word_as_name_and_hard_delete`, `test_loading_table_with_space`, `test_nested_schema_flattening`, `test_custom_copy_options`, `test_logical_streams_from_pg_with_hard_delete_and_default_batch_size_should_pass`, `test_loading_tables_with_skip_updates` and `test_loading_tables_with_custom_temp_dir`
-    def _extracted_from_test_loading_tables_with_custom_temp_dir_3(self, arg0, arg1, arg2):
+    def _extracted_from_test_loading_tables_with_custom_temp_dir_3(
+        self, arg0, arg1, arg2
+    ):
         result = test_utils.get_test_tap_lines(arg0)
         self.config[arg2] = arg1
         target_redshift.persist_lines(self.config, result)

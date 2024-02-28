@@ -1,10 +1,10 @@
-import mock
 import os
+from unittest import mock
 
 import target_redshift
 
 
-class TestTargetRedshift(object):
+class TestTargetRedshift:
     def setup_method(self):
         self.config = {}
 
@@ -16,7 +16,7 @@ class TestTargetRedshift(object):
         self.config["batch_size_rows"] = 20
         self.config["flush_all_streams"] = True
 
-        with open(f"{os.path.dirname(__file__)}/resources/logical-streams.json", "r") as f:
+        with open(f"{os.path.dirname(__file__)}/resources/logical-streams.json") as f:
             lines = f.readlines()
 
         instance = dbSync_mock.return_value
