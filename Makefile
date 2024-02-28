@@ -63,6 +63,10 @@ upgrade-dev-deps: .venv
 	$(pip) install --progress-bar off --upgrade -r requirements_dev.txt
 	touch .dev
 
+.build: .dev
+	$(pip) install --upgrade pip
+	$(pip) install .
+
 .assets: .dev
 	touch .assets
 
@@ -80,6 +84,8 @@ endif
 
 
 dev: .dev ## Setup the local dev environment
+
+build: .build ## Build package
 
 lint: .lint ## Run flake8 and black linting
 
