@@ -123,19 +123,25 @@ Full list of options in `config.json`:
 1. To run integration tests define environment variables first:
 
 ```bash
+
+  # get the host, port, user, password by running the following it `analytics-data-warehouse`:
+  # > make -C infrastructure psql config=predev/predev stack=redshift
   export TARGET_REDSHIFT_HOST=<redshift-host>
   export TARGET_REDSHIFT_PORT=<redshift-port>
   export TARGET_REDSHIFT_USER=<redshift-user>
   export TARGET_REDSHIFT_PASSWORD=<redshift-password>
-  export TARGET_REDSHIFT_DBNAME=<redshift-database-name>
-  export TARGET_REDSHIFT_SCHEMA=<redshift-target-schema>
-  export TARGET_REDSHIFT_AWS_ACCESS_KEY=<aws-access-key-id>
-  export TARGET_REDSHIFT_AWS_SECRET_ACCESS_KEY=<aws-access-secret-access-key>
-  export TARGET_REDSHIFT_S3_ACL=<s3-target-acl>
-  export TARGET_REDSHIFT_S3_BUCKET=<s3-bucket>
-  export TARGET_REDSHIFT_S3_KEY_PREFIX=<s3-bucket-directory>
+  export TARGET_REDSHIFT_DBNAME='main'
+  export TARGET_REDSHIFT_SCHEMA='test'
+  export TARGET_REDSHIFT_S3_BUCKET='data-warehouse-meltano-temp-bucket-predev-predev'
+  
+  # The following are not required if using password authentication
+  # export TARGET_REDSHIFT_AWS_ACCESS_KEY=<aws-access-key-id>
+  # export TARGET_REDSHIFT_AWS_SECRET_ACCESS_KEY=<aws-access-secret-access-key>
+  # export TARGET_REDSHIFT_S3_ACL=<s3-target-acl>
+  # export TARGET_REDSHIFT_S3_KEY_PREFIX=<s3-bucket-directory>
 
-  coverage run -m pytest -vv --disable-pytest-warnings tests/integration && coverage report
+  textioaws assumerole --config predev/predev --duration 14400 coverage run -m pytest -vv --disable-pytest-warnings tests/integration && coverage report
+  
 ```
 
 ### To run pylint

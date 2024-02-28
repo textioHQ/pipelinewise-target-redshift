@@ -82,3 +82,9 @@ endif
 dev: .dev ## Setup the local dev environment
 
 lint: .lint ## Run flake8 and black linting
+
+unit-tests: dev
+	coverage run -m pytest -vv --disable-pytest-warnings tests/unit && coverage report
+
+tests: dev
+	textioaws assumerole --config predev/predev --duration 14400 coverage run -m pytest -vv --disable-pytest-warnings tests/integration && coverage report
