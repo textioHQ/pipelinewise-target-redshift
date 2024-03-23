@@ -14,6 +14,11 @@ dist/
 .coverage.*
 coverage.log
 coverage_html
+.cache/
+htmlcov/
+pytest-out.xml
+.pytest_cache/
+build/
 
 # Singer JSON files
 properties.json
@@ -32,3 +37,25 @@ tmp
 # Docs
 docs/_build/
 docs/_templates/
+
+# Textio build
+venv*/
+*.tar.gz
+.venv
+.dev
+.assets
+.build
+.test
+.lint
+.code
+
+# Custom environment vars
+.env
+.env.*
+
+# Testing
+
+# Anciliary files
+.vscode/
+*.json.gz
+.ruff_cache/

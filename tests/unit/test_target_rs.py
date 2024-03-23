@@ -1,23 +1,22 @@
-import pytest
-import mock
 import os
+from unittest import mock
 
 import target_redshift
 
 
-class TestTargetRedshift(object):
-
+class TestTargetRedshift:
     def setup_method(self):
         self.config = {}
 
-    @mock.patch('target_redshift.flush_streams')
-    @mock.patch('target_redshift.DbSync')
-    def test_persist_lines_with_40_records_and_batch_size_of_20_expect_flushing_once(self, dbSync_mock,
-                                                                                     flush_streams_mock):
-        self.config['batch_size_rows'] = 20
-        self.config['flush_all_streams'] = True
+    @mock.patch("target_redshift.flush_streams")
+    @mock.patch("target_redshift.DbSync")
+    def test_persist_lines_with_40_records_and_batch_size_of_20_expect_flushing_once(
+        self, dbSync_mock, flush_streams_mock
+    ):
+        self.config["batch_size_rows"] = 20
+        self.config["flush_all_streams"] = True
 
-        with open(f'{os.path.dirname(__file__)}/resources/logical-streams.json', 'r') as f:
+        with open(f"{os.path.dirname(__file__)}/resources/logical-streams.json") as f:
             lines = f.readlines()
 
         instance = dbSync_mock.return_value

@@ -1,0 +1,8 @@
+black
+coverage
+mock
+pre-commit
+pylint
+pytest
+pytest-cov
+ruff
